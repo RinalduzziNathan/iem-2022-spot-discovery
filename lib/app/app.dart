@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:iem_2022_spot_discovery/core/model/spot.dart';
 import 'package:iem_2022_spot_discovery/ui/home.dart';
+import 'package:iem_2022_spot_discovery/ui/spot_detail.dart';
 
 class App extends StatelessWidget {
   const App({Key? key}) : super(key: key);
@@ -9,6 +11,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Spot Discovery',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -25,7 +28,30 @@ class App extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      onGenerateRoute: (RouteSettings settings) {
+        var arguments = settings.arguments;
+        switch (settings.name) {
+          case SpotDetail.route:
+            if (arguments != null && arguments is SpotDetailArguments) {
+              Spot spot = arguments.spot;
+              return MaterialPageRoute(builder: (_) => SpotDetail(spot));
+            } else {
+              throw Exception(
+                  "Cette route doit avoir un objet SpotDetailArgument en argument");
+            }
+
+          default:
+            return unknownRoute();
+        }
+      },
       home: const HomePage(title: 'Spot Discovery'),
     );
+  }
+
+  MaterialPageRoute unknownRoute() {
+    return MaterialPageRoute(
+        builder: (_) => const Scaffold(
+              body: Center(child: Text("Route inconnue")),
+            ));
   }
 }

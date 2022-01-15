@@ -53,4 +53,18 @@ class SpotManager {
     }
     return null;
   }
+
+  /// Renvoie les spots dont le titre contient la chapine de caractère passée
+  /// en paramètre
+  List<Spot> getSpotsByName(String name) {
+    List<Spot> matchingSpots = [];
+    if (spots?.isNotEmpty ?? false) {
+      for (Spot spot in spots ?? []) {
+        if (spot.title?.toLowerCase().contains(name.toLowerCase()) ?? false) {
+          matchingSpots.add(spot);
+        }
+      }
+    }
+    return matchingSpots;
+  }
 }
