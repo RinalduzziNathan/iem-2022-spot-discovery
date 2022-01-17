@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iem_2022_spot_discovery/core/manager/spot_manager.dart';
 import 'package:iem_2022_spot_discovery/core/model/spot.dart';
+import 'package:iem_2022_spot_discovery/ui/components/image_placeholder.dart';
 import 'package:iem_2022_spot_discovery/ui/spot_detail.dart';
 
 class HomePage extends StatefulWidget {
@@ -180,12 +181,7 @@ class SpotList extends StatelessWidget {
                     spot.imageThumbnail ?? '',
                     fit: BoxFit.cover,
                     errorBuilder: (context, child, stack) {
-                      return Container(
-                        color: Colors.black,
-                        child: const Center(
-                          child: Icon(Icons.photo_rounded, color: Colors.white,),
-                        ),
-                      );
+                      return const ImagePlaceholder();
                     },
                   )),
               const SizedBox(

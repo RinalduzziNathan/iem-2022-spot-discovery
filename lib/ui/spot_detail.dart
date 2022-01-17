@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iem_2022_spot_discovery/core/model/spot.dart';
+import 'package:iem_2022_spot_discovery/ui/components/image_placeholder.dart';
 
 class SpotDetailArguments {
   Spot spot;
@@ -37,6 +38,9 @@ class _SpotDetailState extends State<SpotDetail> {
                     child: Image.network(
                       widget.spot.imageFullsize ?? '',
                       fit: BoxFit.cover,
+                      errorBuilder: (context, child, stack) {
+                        return const ImagePlaceholder();
+                      },
                     )),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -44,34 +48,34 @@ class _SpotDetailState extends State<SpotDetail> {
                     const SizedBox(
                       height: 16,
                     ),
-                    widget.spot.isRecommended == true
-                        ? Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(4)),
-                                color: Colors.green),
-                            child: const Text(
-                              "Recommandé",
-                              style:
-                                  TextStyle(fontSize: 18, color: Colors.white),
-                            ),
-                          )
-                        : Container(),
+                    Visibility(
+                      visible: widget.spot.isRecommended == true,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            color: Colors.green),
+                        child: const Text(
+                          "Recommandé",
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
+                      ),
+                    ),
                     const SizedBox(
                       height: 8,
                     ),
-                    widget.spot.isClosed == true
-                        ? Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(4)),
-                                color: Colors.red),
-                            child: const Text("Fermé",
-                                style: TextStyle(
-                                    fontSize: 18, color: Colors.white)))
-                        : Container()
+                    Visibility(
+                      visible: widget.spot.isClosed == true,
+                      child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(4)),
+                              color: Colors.red),
+                          child: const Text("Fermé",
+                              style: TextStyle(
+                                  fontSize: 18, color: Colors.white))),
+                    )
                   ],
                 )
               ],
@@ -93,8 +97,11 @@ class _SpotDetailState extends State<SpotDetail> {
                   ),
                   SizedBox(
                     height: 40,
-                    child: ListView.builder(
+                    child: ListView.separated(
                       scrollDirection: Axis.horizontal,
+                      separatorBuilder: (context, position) {
+                        return const SizedBox(width: 8,);
+                      },
                       itemBuilder: (context, position) {
                         String? tag = widget.spot.tagsCategory?[position].name;
                         return Container(
