@@ -38,6 +38,22 @@ class SpotManager {
     }
     return null;
   }
+  ///revoie le spot recherché entré en param
+  Spot? getSpotByName(name) {
+    if (spots?.isNotEmpty ?? false) {
+      Spot? searchedSpot = null;
+     spots?.forEach((element) {
+
+       if(element.title!.contains(name.toString())) {
+         searchedSpot = element;
+
+       }
+     });
+
+      return searchedSpot;
+    }
+    return null;
+  }
 
   /// Renvoie les spots de l'interval défini
   /// [startIndex] est l'index de début de l'interval

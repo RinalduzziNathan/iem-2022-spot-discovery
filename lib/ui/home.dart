@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:iem_2022_spot_discovery/app/app.dart';
 import 'package:iem_2022_spot_discovery/core/manager/spot_manager.dart';
+import 'package:iem_2022_spot_discovery/core/model/spot.dart';
+
+import 'detailSpot.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key, required this.title}) : super(key: key);
@@ -20,6 +24,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  bool typing = false;
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called.
@@ -29,46 +34,99 @@ class _HomePageState extends State<HomePage> {
     // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the HomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: typing ? TextBox() : Text("Rechercher"),
+        leading: IconButton(
+          icon: Icon(typing ? Icons.done : Icons.search),
+          onPressed: () {
+            setState(() {
+
+              typing = !typing;
+              Spot? randomSpot = SpotManager().getSpotByName("Tré");
+
+
+              Navigator.of(context).push(MaterialPageRoute(builder : (context) =>Detail(spot: randomSpot!,)));
+            });
+          },
+        ),
       ),
       body: FutureBuilder(
         future: SpotManager().loadSpots(context),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            // TODO : Remplacer / modifier le contenu ici
-            return Center(
-              // Center is a layout widget. It takes a single child and positions it
-              // in the middle of the parent.
-              child: Column(
-                // Column is also a layout widget. It takes a list of children and
-                // arranges them vertically. By default, it sizes itself to fit its
-                // children horizontally, and tries to be as tall as its parent.
-                //
-                // Invoke "debug painting" (press "p" in the console, choose the
-                // "Toggle Debug Paint" action from the Flutter Inspector in Android
-                // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-                // to see the wireframe for each widget.
-                //
-                // Column has various properties to control how it sizes itself and
-                // how it positions its children. Here we use mainAxisAlignment to
-                // center the children vertically; the main axis here is the vertical
-                // axis because Columns are vertical (the cross axis would be
-                // horizontal).
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const <Widget>[
-                  Text('Hello world !')
-                ],
-              ),
-            );
+            List<Spot>? spots = SpotManager().getSomeSpots();
+            print(spots![0].title);
+            return Container(
+                child:
+
+                ListView.separated(
+              padding: const EdgeInsets.all(8),
+              itemCount: spots.length,
+              itemBuilder: (BuildContext context, int index) {
+                return InkWell(
+                  onTap: () {
+                    print("tapped on container : "+ "${spots[index].title}");
+                    Navigator.of(context).push(MaterialPageRoute(builder : (context) =>Detail(spot: spots[index],)));
+                  },
+                  child: Container(
+                    child: Column(children: <Widget>[
+                      SizedBox(
+                        height: 100,
+                        child: Row(
+                          children: [
+                            Image.network('${spots[index].imageThumbnail}'),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+
+                                Text('${spots[index].title}'),
+                                const Spacer(
+                                  flex: 1,
+                                ),
+                                Text('${spots[index].mainCategory?.name}'),
+                              ],
+                            )
+
+                          ],
+                        ),
+                      )
+                    ]),
+                  ),
+                );
+              },
+              separatorBuilder: (BuildContext context, int index) =>
+                  const Divider(),
+            ));
           } else {
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
         },
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+         Spot? randomSpot = SpotManager().getRandomSpot();
+         // Spot? randomSpot = SpotManager().getSpotByName("Trévoux");
+
+          Navigator.of(context).push(MaterialPageRoute(builder : (context) =>Detail(spot: randomSpot!,)));
+        },
+        backgroundColor: Colors.deepOrangeAccent,
+        child: const Icon(Icons.all_inclusive),
+      ),// This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+class TextBox extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.centerLeft,
+      color: Colors.white,
+      child: TextField(
+        decoration:
+        InputDecoration(border: InputBorder.none, hintText: 'Rechercher'),
+      ),
     );
   }
 }
