@@ -33,7 +33,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     searchController.addListener(() {
-      searchSpots(searchController.text);
+      if (searchController.text.isNotEmpty) {
+        _searchSpots(searchController.text);
+      } else if (searchController.text.isEmpty && filteredSpots.isNotEmpty) {
+        _clearSearch();
+      }
     });
     scrollController.addListener(() {
       if (scrollController.position.pixels >=
@@ -67,106 +71,58 @@ class _HomePageState extends State<HomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: FutureBuilder(
-        future: SpotManager().loadSpots(context),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            List<Spot> spots;
-            if (searchController.text.isNotEmpty) {
-              spots = filteredSpots;
-            } else {
-              if (paginatedSpotList.isEmpty) {
-                paginatedSpotList.addAll(SpotManager().getSomeSpots() ?? []);
-                offset = paginatedSpotList.length;
-              }
-              spots = paginatedSpotList;
-            }
-            return SingleChildScrollView(
-              controller: scrollController,
-              child: Column(
+      body: SingleChildScrollView(
+        controller: scrollController,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Row(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: searchController,
-                            decoration: const InputDecoration(
-                                hintText: "Rechercher...",
-                                border: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(6)),
-                                )),
-                            textInputAction: TextInputAction.done,
-                            onSubmitted: (term) {
-                              searchSpots(term);
-                            },
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.search),
-                          onPressed: () {
-                            searchSpots(searchController.text);
-                          },
-                        )
-                      ],
+                  Expanded(
+                    child: TextField(
+                      controller: searchController,
+                      decoration: const InputDecoration(
+                          hintText: "Rechercher...",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(6)),
+                          )),
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (term) {
+                        _searchSpots(term);
+                      },
                     ),
                   ),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    primary: false,
-                    itemBuilder: (context, position) {
-                      Spot spot = spots[position];
-                      return InkWell(
-                        onTap: () {
-                          Navigator.of(context).pushNamed(SpotDetail.route,
-                              arguments: SpotDetailArguments(spot: spot));
-                        },
-                        child: Row(
-                          children: [
-                            SizedBox(
-                                width: 100,
-                                height: 100,
-                                child: Image.network(
-                                  spot.imageThumbnail ?? '',
-                                  fit: BoxFit.cover,
-                                )),
-                            const SizedBox(
-                              width: 16,
-                            ),
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    spot.title ?? '',
-                                    style: const TextStyle(fontSize: 16),
-                                  ),
-                                  const SizedBox(
-                                    height: 8,
-                                  ),
-                                  Text(
-                                      "Catégorie : ${spot.mainCategory?.name ?? 'Inconnue'}")
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                      );
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: () {
+                      _searchSpots(searchController.text);
                     },
-                    itemCount: spots.length,
-                  ),
+                  )
                 ],
               ),
-            );
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        },
+            ),
+            filteredSpots.isNotEmpty
+                ? SpotList(filteredSpots)
+                : FutureBuilder(
+                    future: SpotManager().loadSpots(context),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        if (paginatedSpotList.isEmpty) {
+                          paginatedSpotList
+                              .addAll(SpotManager().getSomeSpots() ?? []);
+                          offset = paginatedSpotList.length;
+                        }
+                        return SpotList(paginatedSpotList);
+                      } else {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                    },
+                  ),
+          ],
+        ),
       ), // This
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -184,10 +140,78 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void searchSpots(String term) async {
+  void _searchSpots(String term) {
     setState(() {
       filteredSpots.clear();
       filteredSpots.addAll(SpotManager().getSpotsByName(term));
     });
+  }
+
+  void _clearSearch() {
+    setState(() {
+      filteredSpots.clear();
+    });
+  }
+}
+
+class SpotList extends StatelessWidget {
+  final List<Spot> spots;
+
+  const SpotList(this.spots, {Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      shrinkWrap: true,
+      primary: false,
+      itemBuilder: (context, position) {
+        Spot spot = spots[position];
+        return InkWell(
+          onTap: () {
+            Navigator.of(context).pushNamed(SpotDetail.route,
+                arguments: SpotDetailArguments(spot: spot));
+          },
+          child: Row(
+            children: [
+              SizedBox(
+                  width: 100,
+                  height: 100,
+                  child: Image.network(
+                    spot.imageThumbnail ?? '',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, child, stack) {
+                      return Container(
+                        color: Colors.black,
+                        child: const Center(
+                          child: Icon(Icons.photo_rounded, color: Colors.white,),
+                        ),
+                      );
+                    },
+                  )),
+              const SizedBox(
+                width: 16,
+              ),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      spot.title ?? '',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    Text("Catégorie : ${spot.mainCategory?.name ?? 'Inconnue'}")
+                  ],
+                ),
+              )
+            ],
+          ),
+        );
+      },
+      itemCount: spots.length,
+    );
   }
 }

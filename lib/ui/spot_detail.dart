@@ -113,11 +113,11 @@ class _SpotDetailState extends State<SpotDetail> {
                       itemCount: widget.spot.tagsCategory?.length ?? 0,
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 12,
                   ),
                   Text("Adresse : ${widget.spot.address}"),
-                  SizedBox(
+                  const SizedBox(
                     height: 12,
                   ),
                   Text(
